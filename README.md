@@ -2,13 +2,6 @@
 
 Velocímetro para moto usando GPS do celular. Funciona offline depois da primeira abertura.
 
-## Como publicar no GitHub Pages
-
-1. Crie um repositório no GitHub (ex: `velocimetro`)
-2. Faça upload de todos os arquivos desta pasta
-3. Vá em **Settings → Pages → Branch: main → / (root) → Save**
-4. Acesse `https://SEU_USUARIO.github.io/velocimetro/`
-
 ## Como instalar no iPhone como app
 
 1. Abra o link no **Safari** (não funciona em outros navegadores no iOS)
@@ -24,12 +17,4 @@ Velocímetro para moto usando GPS do celular. Funciona offline depois da primeir
 - O app tenta ativar o Wake Lock automaticamente (iOS 16.4+)
 - Funciona 100% offline após a primeira abertura (Service Worker faz cache dos arquivos)
 
-## Arquivos
-
-| Arquivo | Função |
-|---|---|
-| `index.html` | App principal |
-| `manifest.json` | Configuração PWA (ícone, nome, cor) |
-| `sw.js` | Service Worker — cache offline |
-| `icon.svg` | Ícone do app |
 # Velocimetro
