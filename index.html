@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Velocímetro" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <title>Velocímetro</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0a;
+      --bg2:       #141414;
+      --bg3:       #1e1e1e;
+      --text:      #f0f0f0;
+      --muted:     #666;
+      --accent:    #1dcc8a;
+      --danger:    #e05a2b;
+      --border:    rgba(255,255,255,0.08);
+      --safe-top:  env(safe-area-inset-top, 0px);
+      --safe-bot:  env(safe-area-inset-bottom, 0px);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+      user-select: none;
+    }
+
+    #app {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding:
+        calc(var(--safe-top) + 1.5rem)
+        1.25rem
+        calc(var(--safe-bot) + 1.5rem);
+      gap: 0;
+    }
+
+    /* ── status bar ── */
+    #status-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+    #dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.4s;
+    }
+    #dot.on  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    #dot.err { background: var(--danger); }
+
+    /* ── main speed ── */
+    #speed-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    #speed-num {
+      font-size: clamp(100px, 28vw, 140px);
+      font-weight: 200;
+      line-height: 1;
+      letter-spacing: -4px;
+      color: var(--text);
+      transition: color 0.3s;
+      font-variant-numeric: tabular-nums;
+    }
+    #speed-num.moving { color: var(--accent); }
+
+    #speed-unit {
+      font-size: 15px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    #accuracy {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 1rem;
+      letter-spacing: 0.03em;
+      min-height: 16px;
+    }
+
+    /* ── stat cards ── */
+    #stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem 1.25rem;
+    }
+
+    .card-label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .card-label .dot-max { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .card-label .dot-min { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); }
+
+    .card-value {
+      font-size: 36px;
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+    }
+    .card-unit {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ── reset button ── */
+    #btn-reset {
+      margin-top: 1.5rem;
+      padding: 11px 28px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, color 0.15s;
+    }
+    #btn-reset:active {
+      background: var(--bg2);
+      color: var(--text);
+    }
+
+    /* ── error ── */
+    #error-box {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      background: rgba(224,90,43,0.1);
+      border: 1px solid rgba(224,90,43,0.25);
+      font-size: 13px;
+      color: #f08060;
+      text-align: center;
+      line-height: 1.5;
+      width: 100%;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <div id="status-bar">
+    <div id="dot"></div>
+    <span id="status-text">Aguardando GPS…</span>
+  </div>
+
+  <div id="speed-wrap">
+    <div id="speed-num">--</div>
+    <div id="speed-unit">km / h</div>
+    <div id="accuracy"></div>
+  </div>
+
+  <div id="stats">
+    <div class="card">
+      <div class="card-label"><span class="dot-max"></span> Máxima</div>
+      <div class="card-value" id="max-val">--</div>
+      <div class="card-unit">km/h</div>
+    </div>
+    <div class="card">
+      <div class="card-label"><span class="dot-min"></span> Mínima</div>
+      <div class="card-value" id="min-val">--</div>
+      <div class="card-unit">km/h</div>
+    </div>
+  </div>
+
+  <button id="btn-reset">↺ Resetar máx / mín</button>
+
+  <div id="error-box"></div>
+
+</div>
+
+<script>
+  const numEl    = document.getElementById('speed-num');
+  const maxEl    = document.getElementById('max-val');
+  const minEl    = document.getElementById('min-val');
+  const dotEl    = document.getElementById('dot');
+  const statusEl = document.getElementById('status-text');
+  const accEl    = document.getElementById('accuracy');
+  const errBox   = document.getElementById('error-box');
+  const btnReset = document.getElementById('btn-reset');
+
+  let maxSpeed = null;
+  let minSpeed = null;
+  let watchId  = null;
+
+  const MIN_MOVING_KMH = 1.5;
+
+  function fmt(v) { return Math.round(v); }
+
+  function onPosition(pos) {
+    const { speed, accuracy } = pos.coords;
+
+    dotEl.className = 'on';
+    statusEl.textContent = 'GPS ativo';
+    errBox.style.display = 'none';
+
+    accEl.textContent = accuracy != null
+      ? `precisão ± ${Math.round(accuracy)} m`
+      : '';
+
+    const kmh = (speed != null && speed >= 0) ? speed * 3.6 : 0;
+
+    numEl.textContent = fmt(kmh);
+    numEl.className   = kmh >= MIN_MOVING_KMH ? 'moving' : '';
+
+    if (kmh >= MIN_MOVING_KMH) {
+      if (maxSpeed === null || kmh > maxSpeed) {
+        maxSpeed = kmh;
+        maxEl.textContent = fmt(maxSpeed);
+      }
+      if (minSpeed === null || kmh < minSpeed) {
+        minSpeed = kmh;
+        minEl.textContent = fmt(minSpeed);
+      }
+    }
+  }
+
+  function onError(err) {
+    dotEl.className = 'err';
+    statusEl.textContent = 'Erro no GPS';
+    numEl.textContent = '--';
+    numEl.className   = '';
+
+    const msgs = {
+      1: 'Permissão negada. Vá em Ajustes › Safari › Localização e permita o acesso.',
+      2: 'Sinal GPS indisponível. Tente em área aberta.',
+      3: 'Tempo esgotado para obter localização. Tente novamente.'
+    };
+
+    errBox.textContent = msgs[err.code] || 'Não foi possível acessar o GPS.';
+    errBox.style.display = 'block';
+  }
+
+  function startGPS() {
+    if (!('geolocation' in navigator)) {
+      errBox.textContent = 'GPS não suportado neste navegador.';
+      errBox.style.display = 'block';
+      return;
+    }
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    statusEl.textContent = 'Localizando…';
+    watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+      enableHighAccuracy: true,
+      maximumAge: 800,
+      timeout: 12000
+    });
+  }
+
+  btnReset.addEventListener('click', () => {
+    maxSpeed = null; minSpeed = null;
+    maxEl.textContent = '--';
+    minEl.textContent = '--';
+  });
+
+  // Prevent screen sleep via Wake Lock API (iOS 16.4+)
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try {
+        await navigator.wakeLock.request('screen');
+      } catch (_) {}
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      startGPS();
+      requestWakeLock();
+    }
+  });
+
+  startGPS();
+  requestWakeLock();
+
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>
