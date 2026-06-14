@@ -304,19 +304,25 @@
     minEl.textContent = '--';
   });
 
-  // Prevent screen sleep via Wake Lock API (iOS 16.4+)
+  // Wake Lock — mantém a tela acesa (iOS 18.4+ em PWA instalada)
+  let wakeLock = null;
+
   async function requestWakeLock() {
-    if ('wakeLock' in navigator) {
-      try {
-        await navigator.wakeLock.request('screen');
-      } catch (_) {}
-    }
+    if (!('wakeLock' in navigator)) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      // Quando o sistema libera o lock (ex: app foi pro fundo), tenta renovar
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+      });
+    } catch (_) {}
   }
 
+  // Toda vez que o app volta ao foco, renova o GPS e o wake lock
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       startGPS();
-      requestWakeLock();
+      if (!wakeLock) requestWakeLock();
     }
   });
 
@@ -325,7 +331,9 @@
 
   // Register Service Worker
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('/velocimetro/sw.js', {
+      scope: '/velocimetro/'
+    }).catch(() => {});
   }
 </script>
 </body>

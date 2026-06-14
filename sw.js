@@ -1,4 +1,4 @@
-const CACHE = 'velocimetro-v1';
+const CACHE = 'velocimetro-v2';
 const ASSETS = [
   '/velocimetro/',
   '/velocimetro/index.html',
