@@ -1,9 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- background -->
   <rect width="512" height="512" rx="110" fill="#0a0a0a"/>
-  <text x="256" y="310" font-family="-apple-system, Helvetica Neue, sans-serif"
-    font-size="240" font-weight="200" fill="#1dcc8a"
-    text-anchor="middle" dominant-baseline="auto">V</text>
-  <text x="256" y="400" font-family="-apple-system, Helvetica Neue, sans-serif"
-    font-size="72" font-weight="300" fill="#444"
-    text-anchor="middle" letter-spacing="10">km/h</text>
+
+  <!-- speedometer arc (half circle) -->
+  <path d="M 96 320 A 160 160 0 0 1 416 320" stroke="#1e1e1e" stroke-width="36" fill="none" stroke-linecap="round"/>
+  <!-- colored progress arc ~75% -->
+  <path d="M 96 320 A 160 160 0 0 1 380 210" stroke="#1dcc8a" stroke-width="36" fill="none" stroke-linecap="round"/>
+
+  <!-- tick marks -->
+  <line x1="96"  y1="320" x2="76"  y2="320" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+  <line x1="120" y1="222" x2="107" y2="205" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+  <line x1="206" y1="153" x2="200" y2="133" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+  <line x1="306" y1="153" x2="312" y2="133" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+  <line x1="392" y1="222" x2="405" y2="205" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+  <line x1="416" y1="320" x2="436" y2="320" stroke="#444" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- needle -->
+  <line x1="256" y1="320" x2="366" y2="178" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- center hub -->
+  <circle cx="256" cy="320" r="20" fill="#1dcc8a"/>
+  <circle cx="256" cy="320" r="9"  fill="#0a0a0a"/>
 </svg>
