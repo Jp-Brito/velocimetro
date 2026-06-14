@@ -1,5 +1,10 @@
 const CACHE = 'velocimetro-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
+const ASSETS = [
+  '/velocimetro/',
+  '/velocimetro/index.html',
+  '/velocimetro/manifest.json',
+  '/velocimetro/icon.svg'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(
