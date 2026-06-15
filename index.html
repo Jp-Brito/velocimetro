@@ -212,9 +212,93 @@
     }
 
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+    /* splash screen */
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      z-index: 9999;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    #splash-content {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    #splash h1 {
+      font-size: 42px;
+      font-weight: 300;
+      letter-spacing: -1px;
+      margin: 0;
+    }
+
+    #splash p {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 280px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    #btn-start {
+      padding: 14px 40px;
+      border-radius: 100px;
+      border: 2px solid var(--accent);
+      background: rgba(29,204,138,0.15);
+      color: var(--accent);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.25s;
+      min-width: 180px;
+      letter-spacing: 0.05em;
+    }
+
+    #btn-start:active {
+      background: rgba(29,204,138,0.25);
+      transform: scale(0.95);
+    }
+
+    #splash.hidden {
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease-out;
+    }
+
+    #app {
+      opacity: 0;
+      transition: opacity 0.4s ease-out 0.2s;
+    }
+
+    #app.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div id="splash-content">
+    <div>
+      <h1>Velocímetro</h1>
+      <p>Rastreie sua velocidade em tempo real com GPS</p>
+    </div>
+    <button id="btn-start">INICIAR</button>
+  </div>
+</div>
+
 <div id="app">
 
   <div id="status-bar">
@@ -265,15 +349,43 @@
   const btnReset = document.getElementById('btn-reset');
   const btnWake  = document.getElementById('btn-wake');
   const wakeLabel = document.getElementById('wake-label');
+  const splash   = document.getElementById('splash');
+  const appEl    = document.getElementById('app');
+  const btnStart = document.getElementById('btn-start');
 
   let maxSpeed = null;
   let minSpeed = null;
   let watchId  = null;
   let wakeLock = null;
+  let audioCtx = null;
+  let isActive = false;
   const supportsWakeLock = 'wakeLock' in navigator;
 
   const MIN_KMH = 1.5;
   const fmt = v => Math.round(v);
+
+  // ── SPLASH SCREEN + INITIAL ACTIVATION ──
+  async function startApp() {
+    isActive = true;
+    
+    // 1. Ativa áudio silencioso (exigido por iOS)
+    startSilentAudio();
+    
+    // 2. Pede Wake Lock (agora com gesto do usuário explícito)
+    await acquireWakeLock();
+    
+    // 3. Mostra app e esconde splash
+    splash.classList.add('hidden');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      appEl.classList.add('visible');
+    }, 400);
+    
+    // 4. Inicia GPS
+    startGPS();
+  }
+
+  btnStart.addEventListener('click', startApp);
 
   // ── GPS ──
   function onPosition(pos) {
@@ -367,14 +479,13 @@
     maxEl.textContent = '--'; minEl.textContent = '--';
   });
 
-  // ── Áudio silencioso — impede o iOS de suspender o PWA e apagar a tela ──
-  // O iOS não suspende apps com áudio ativo. Oscilador com gain quase zero.
-  let audioCtx = null;
-
+  // ── SILENT AUDIO (iOS) ──
+  // O iOS suspende PWA sem áudio ativo. Oscilador com gain quase zero.
   function startSilentAudio() {
     try {
       if (audioCtx) return;
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       gain.gain.value = 0.00001; // inaudível mas ativo
@@ -384,25 +495,17 @@
     } catch(e) {}
   }
 
-  // iOS exige gesto do usuário para iniciar AudioContext
-  document.addEventListener('touchstart', function onTouch() {
-    startSilentAudio();
-    document.removeEventListener('touchstart', onTouch);
-  }, { once: true });
-
   // Renova ao voltar ao foco (wake lock + áudio)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      startGPS();
-      if (!wakeLock) acquireWakeLock();
+    if (document.visibilityState === 'visible' && isActive) {
+      if (!wakeLock && supportsWakeLock) acquireWakeLock();
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      startGPS();
     }
   });
 
-  // Init
+  // Init - mostra splash e aguarda clique
   updateWakeUI();
-  startGPS();
-  acquireWakeLock();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/velocimetro/sw.js', { scope: '/velocimetro/' }).catch(() => {});
