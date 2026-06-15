@@ -14,16 +14,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0a0a0a;
-      --bg2:       #141414;
-      --bg3:       #1e1e1e;
-      --text:      #f0f0f0;
-      --muted:     #666;
-      --accent:    #1dcc8a;
-      --danger:    #e05a2b;
-      --border:    rgba(255,255,255,0.08);
-      --safe-top:  env(safe-area-inset-top, 0px);
-      --safe-bot:  env(safe-area-inset-bottom, 0px);
+      --bg:      #0a0a0a;
+      --bg2:     #141414;
+      --bg3:     #1e1e1e;
+      --text:    #f0f0f0;
+      --muted:   #666;
+      --accent:  #1dcc8a;
+      --danger:  #e05a2b;
+      --warn:    #e0a82b;
+      --border:  rgba(255,255,255,0.08);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bot: env(safe-area-inset-bottom, 0px);
     }
 
     html, body {
@@ -42,23 +43,26 @@
       flex-direction: column;
       align-items: center;
       padding:
-        calc(var(--safe-top) + 1.5rem)
+        calc(var(--safe-top) + 1.25rem)
         1.25rem
-        calc(var(--safe-bot) + 1.5rem);
-      gap: 0;
+        calc(var(--safe-bot) + 1.25rem);
     }
 
-    /* ── status bar ── */
+    /* status bar */
     #status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+
+    #gps-status {
       display: flex;
       align-items: center;
       gap: 7px;
       font-size: 12px;
       color: var(--muted);
-      letter-spacing: 0.02em;
-      width: 100%;
-      justify-content: center;
-      margin-bottom: 2rem;
     }
     #dot {
       width: 7px; height: 7px;
@@ -70,14 +74,44 @@
     #dot.on  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
     #dot.err { background: var(--danger); }
 
-    /* ── main speed ── */
+    /* wake lock button */
+    #btn-wake {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s;
+    }
+    #btn-wake.active {
+      border-color: rgba(29,204,138,0.4);
+      background: rgba(29,204,138,0.1);
+      color: var(--accent);
+    }
+    #btn-wake.unavailable {
+      border-color: rgba(224,168,43,0.3);
+      background: rgba(224,168,43,0.08);
+      color: var(--warn);
+    }
+    #wake-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* main speed */
     #speed-wrap {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0;
     }
 
     #speed-num {
@@ -102,27 +136,24 @@
     #accuracy {
       font-size: 11px;
       color: var(--muted);
-      margin-top: 1rem;
-      letter-spacing: 0.03em;
+      margin-top: 0.75rem;
       min-height: 16px;
     }
 
-    /* ── stat cards ── */
+    /* stat cards */
     #stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       width: 100%;
-      margin-top: 2rem;
+      margin-top: 1.5rem;
     }
-
     .card {
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 1rem 1.25rem;
     }
-
     .card-label {
       font-size: 11px;
       color: var(--muted);
@@ -133,9 +164,8 @@
       gap: 5px;
       margin-bottom: 8px;
     }
-    .card-label .dot-max { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-    .card-label .dot-min { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); }
-
+    .dot-max { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .dot-min { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); }
     .card-value {
       font-size: 36px;
       font-weight: 300;
@@ -143,35 +173,33 @@
       letter-spacing: -1px;
       font-variant-numeric: tabular-nums;
     }
-    .card-unit {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 3px;
-    }
+    .card-unit { font-size: 12px; color: var(--muted); margin-top: 3px; }
 
-    /* ── reset button ── */
+    /* buttons row */
+    #btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.25rem;
+      width: 100%;
+    }
     #btn-reset {
-      margin-top: 1.5rem;
-      padding: 11px 28px;
+      flex: 1;
+      padding: 11px 0;
       border-radius: 100px;
       border: 1px solid var(--border);
       background: var(--bg3);
       color: var(--muted);
       font-size: 13px;
-      letter-spacing: 0.04em;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       transition: background 0.15s, color 0.15s;
     }
-    #btn-reset:active {
-      background: var(--bg2);
-      color: var(--text);
-    }
+    #btn-reset:active { background: var(--bg2); color: var(--text); }
 
-    /* ── error ── */
+    /* error */
     #error-box {
       display: none;
-      margin-top: 1rem;
+      margin-top: 0.75rem;
       padding: 0.75rem 1rem;
       border-radius: 12px;
       background: rgba(224,90,43,0.1);
@@ -183,17 +211,21 @@
       width: 100%;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      * { transition: none !important; }
-    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
 </head>
 <body>
 <div id="app">
 
   <div id="status-bar">
-    <div id="dot"></div>
-    <span id="status-text">Aguardando GPS…</span>
+    <div id="gps-status">
+      <div id="dot"></div>
+      <span id="status-text">Aguardando GPS…</span>
+    </div>
+    <button id="btn-wake" onclick="toggleWakeLock()">
+      <span id="wake-dot"></span>
+      <span id="wake-label">Tela acesa</span>
+    </button>
   </div>
 
   <div id="speed-wrap">
@@ -215,12 +247,13 @@
     </div>
   </div>
 
-  <button id="btn-reset">↺ Resetar máx / mín</button>
+  <div id="btn-row">
+    <button id="btn-reset">↺ Resetar máx / mín</button>
+  </div>
 
   <div id="error-box"></div>
 
 </div>
-
 <script>
   const numEl    = document.getElementById('speed-num');
   const maxEl    = document.getElementById('max-val');
@@ -230,40 +263,31 @@
   const accEl    = document.getElementById('accuracy');
   const errBox   = document.getElementById('error-box');
   const btnReset = document.getElementById('btn-reset');
+  const btnWake  = document.getElementById('btn-wake');
+  const wakeLabel = document.getElementById('wake-label');
 
   let maxSpeed = null;
   let minSpeed = null;
   let watchId  = null;
+  let wakeLock = null;
+  const supportsWakeLock = 'wakeLock' in navigator;
 
-  const MIN_MOVING_KMH = 1.5;
+  const MIN_KMH = 1.5;
+  const fmt = v => Math.round(v);
 
-  function fmt(v) { return Math.round(v); }
-
+  // ── GPS ──
   function onPosition(pos) {
     const { speed, accuracy } = pos.coords;
-
     dotEl.className = 'on';
     statusEl.textContent = 'GPS ativo';
     errBox.style.display = 'none';
-
-    accEl.textContent = accuracy != null
-      ? `precisão ± ${Math.round(accuracy)} m`
-      : '';
-
+    accEl.textContent = accuracy != null ? `precisão ± ${Math.round(accuracy)} m` : '';
     const kmh = (speed != null && speed >= 0) ? speed * 3.6 : 0;
-
     numEl.textContent = fmt(kmh);
-    numEl.className   = kmh >= MIN_MOVING_KMH ? 'moving' : '';
-
-    if (kmh >= MIN_MOVING_KMH) {
-      if (maxSpeed === null || kmh > maxSpeed) {
-        maxSpeed = kmh;
-        maxEl.textContent = fmt(maxSpeed);
-      }
-      if (minSpeed === null || kmh < minSpeed) {
-        minSpeed = kmh;
-        minEl.textContent = fmt(minSpeed);
-      }
+    numEl.className   = kmh >= MIN_KMH ? 'moving' : '';
+    if (kmh >= MIN_KMH) {
+      if (maxSpeed === null || kmh > maxSpeed) { maxSpeed = kmh; maxEl.textContent = fmt(maxSpeed); }
+      if (minSpeed === null || kmh < minSpeed) { minSpeed = kmh; minEl.textContent = fmt(minSpeed); }
     }
   }
 
@@ -271,16 +295,15 @@
     dotEl.className = 'err';
     statusEl.textContent = 'Erro no GPS';
     numEl.textContent = '--';
-    numEl.className   = '';
-
+    numEl.className = '';
     const msgs = {
-      1: 'Permissão negada. Vá em Ajustes › Safari › Localização e permita o acesso.',
+      1: 'Permissão negada. Vá em Ajustes › Privacidade › Localização e permita o acesso.',
       2: 'Sinal GPS indisponível. Tente em área aberta.',
-      3: 'Tempo esgotado para obter localização. Tente novamente.'
+      3: 'Tempo esgotado. Tentando novamente…'
     };
-
     errBox.textContent = msgs[err.code] || 'Não foi possível acessar o GPS.';
     errBox.style.display = 'block';
+    if (err.code === 3) setTimeout(startGPS, 3000);
   }
 
   function startGPS() {
@@ -298,42 +321,67 @@
     });
   }
 
-  btnReset.addEventListener('click', () => {
-    maxSpeed = null; minSpeed = null;
-    maxEl.textContent = '--';
-    minEl.textContent = '--';
-  });
-
-  // Wake Lock — mantém a tela acesa (iOS 18.4+ em PWA instalada)
-  let wakeLock = null;
-
-  async function requestWakeLock() {
-    if (!('wakeLock' in navigator)) return;
-    try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      // Quando o sistema libera o lock (ex: app foi pro fundo), tenta renovar
-      wakeLock.addEventListener('release', () => {
-        wakeLock = null;
-      });
-    } catch (_) {}
+  // ── Wake Lock ──
+  function updateWakeUI() {
+    if (!supportsWakeLock) {
+      btnWake.className = 'unavailable';
+      wakeLabel.textContent = 'Sem suporte';
+      return;
+    }
+    if (wakeLock) {
+      btnWake.className = 'active';
+      wakeLabel.textContent = 'Tela acesa ✓';
+    } else {
+      btnWake.className = '';
+      wakeLabel.textContent = 'Tela acesa';
+    }
   }
 
-  // Toda vez que o app volta ao foco, renova o GPS e o wake lock
+  async function acquireWakeLock() {
+    if (!supportsWakeLock) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+        updateWakeUI();
+      });
+      updateWakeUI();
+    } catch(e) {
+      wakeLock = null;
+      updateWakeUI();
+    }
+  }
+
+  async function toggleWakeLock() {
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+      updateWakeUI();
+    } else {
+      await acquireWakeLock();
+    }
+  }
+
+  // Renova ao voltar ao foco
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       startGPS();
-      if (!wakeLock) requestWakeLock();
+      if (!wakeLock) acquireWakeLock();
     }
   });
 
-  startGPS();
-  requestWakeLock();
+  btnReset.addEventListener('click', () => {
+    maxSpeed = null; minSpeed = null;
+    maxEl.textContent = '--'; minEl.textContent = '--';
+  });
 
-  // Register Service Worker
+  // Init
+  updateWakeUI();
+  startGPS();
+  acquireWakeLock();
+
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/velocimetro/sw.js', {
-      scope: '/velocimetro/'
-    }).catch(() => {});
+    navigator.serviceWorker.register('/velocimetro/sw.js', { scope: '/velocimetro/' }).catch(() => {});
   }
 </script>
 </body>
