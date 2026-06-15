@@ -362,17 +362,41 @@
     }
   }
 
-  // Renova ao voltar ao foco
+  btnReset.addEventListener('click', () => {
+    maxSpeed = null; minSpeed = null;
+    maxEl.textContent = '--'; minEl.textContent = '--';
+  });
+
+  // ── Áudio silencioso — impede o iOS de suspender o PWA e apagar a tela ──
+  // O iOS não suspende apps com áudio ativo. Oscilador com gain quase zero.
+  let audioCtx = null;
+
+  function startSilentAudio() {
+    try {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      gain.gain.value = 0.00001; // inaudível mas ativo
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+    } catch(e) {}
+  }
+
+  // iOS exige gesto do usuário para iniciar AudioContext
+  document.addEventListener('touchstart', function onTouch() {
+    startSilentAudio();
+    document.removeEventListener('touchstart', onTouch);
+  }, { once: true });
+
+  // Renova ao voltar ao foco (wake lock + áudio)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       startGPS();
       if (!wakeLock) acquireWakeLock();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     }
-  });
-
-  btnReset.addEventListener('click', () => {
-    maxSpeed = null; minSpeed = null;
-    maxEl.textContent = '--'; minEl.textContent = '--';
   });
 
   // Init
