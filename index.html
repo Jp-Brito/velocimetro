@@ -418,7 +418,10 @@
       <h1>Velocímetro</h1>
       <p>Rastreie sua velocidade em tempo real com GPS</p>
     </div>
-    <button id="btn-start">INICIAR</button>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+      <button id="btn-start">INICIAR</button>
+      <button id="btn-history-splash" style="background:transparent;border:1px solid rgba(91,138,255,0.18);color:#5b8aff;padding:8px 20px;border-radius:999px;">Histórico</button>
+    </div>
   </div>
 </div>
 
@@ -488,6 +491,7 @@
   const btnReset = document.getElementById('btn-reset');
   const btnStop  = document.getElementById('btn-stop');
   const btnHistory = document.getElementById('btn-history');
+  const btnHistorySplash = document.getElementById('btn-history-splash');
   const btnWake  = document.getElementById('btn-wake');
   const wakeLabel = document.getElementById('wake-label');
   const splash   = document.getElementById('splash');
@@ -505,6 +509,7 @@
   let watchId  = null;
   let wakeLock = null;
   let audioCtx = null;
+  let audioOsc = null;
   let isActive = false;
   const supportsWakeLock = 'wakeLock' in navigator;
 
@@ -517,7 +522,7 @@
     isActive = true;
     
     // 1. Ativa áudio silencioso (exigido por iOS)
-    startSilentAudio();
+    await startSilentAudio();
     
     // 2. Pede Wake Lock (agora com gesto do usuário explícito)
     await acquireWakeLock();
@@ -672,21 +677,37 @@
   function closeHistory() {
     historyPanel.classList.add('hidden');
   }
-
   async function stopSession() {
     if (watchId !== null) {
       navigator.geolocation.clearWatch(watchId);
       watchId = null;
     }
     if (wakeLock) {
-      await wakeLock.release();
+      try { await wakeLock.release(); } catch(e) {}
       wakeLock = null;
       updateWakeUI();
     }
+    // parar áudio silencioso
+    try {
+      if (audioOsc) {
+        audioOsc.stop();
+        audioOsc = null;
+      }
+      if (audioCtx) {
+        audioCtx.close();
+        audioCtx = null;
+      }
+    } catch(e) {}
+
     saveSession();
     statusEl.textContent = 'Parado — dados salvos';
     dotEl.className = '';
     isActive = false;
+
+    // voltar ao menu inicial
+    appEl.classList.remove('visible');
+    splash.style.display = 'flex';
+    splash.classList.remove('hidden');
   }
 
   // ── Wake Lock ──
@@ -739,6 +760,7 @@
   });
 
   btnHistory.addEventListener('click', openHistory);
+  if (btnHistorySplash) btnHistorySplash.addEventListener('click', openHistory);
   btnCloseHistory.addEventListener('click', closeHistory);
 
   historyPanel.addEventListener('click', e => {
@@ -747,17 +769,18 @@
 
   // ── SILENT AUDIO (iOS) ──
   // O iOS suspende PWA sem áudio ativo. Oscilador com gain quase zero.
-  function startSilentAudio() {
+  async function startSilentAudio() {
     try {
       if (audioCtx) return;
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       gain.gain.value = 0.00001; // inaudível mas ativo
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
+      audioOsc = osc;
     } catch(e) {}
   }
 
